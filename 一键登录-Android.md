@@ -8,6 +8,8 @@ sdk技术问题沟通QQ群：609994083</br>
 1. 调用SDK方法来获得`token`，步骤如下：
 
     a. 构造SDK中认证工具类`AuthnHelper`的对象；</br>
+    
+    b. 使用工具类`AuthnHelper`的对象的init方法初始化SDK；</br>
 
     b. 使用预取号方法提前缓存取号数据（非必要）；</br>
 
@@ -37,6 +39,7 @@ sdk技术问题沟通QQ群：609994083</br>
 <uses-permission android:name="android.permission.SEND_SMS" />
 <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 ```
 
 **2. 配置授权登录activity**
@@ -83,6 +86,7 @@ public void onCreate(Bundle savedInstanceState) {
     mContext = this;    
     ……
     mAuthnHelper = AuthnHelper.getInstance(mContext);
+    mAuthnHelper.init(Constant.APP_ID,Constant.APP_KEY);
     }
 ```
 
@@ -108,8 +112,7 @@ mListener = new TokenListener() {
 **3. 接口调用**
 
 ```java
-mAuthnHelper.getTokenExp(Constant.APP_ID, Constant.APP_KEY,
-                 AuthnHelper.AUTH_TYPE_DYNAMIC_SMS + AuthnHelper.AUTH_TYPE_SMS, mListener);
+mAuthnHelper.getTokenExp(mLoginType, AuthnHelper.AUTH_TYPE_DYNAMIC_SMS + AuthnHelper.AUTH_TYPE_SMS, mListener);
 ```
 
 <div STYLE="page-break-after: always;"></div>
@@ -233,10 +236,7 @@ SDK自动弹出登录缓冲界面（图一，<font  style="color:blue; font-styl
 **原型**
 
 ```java
-public void getTokenExp(final String appId, 
-            final String appKey,
-            final String authType, 
-            final TokenListener listener)
+public void getTokenExp(int loginType, final String authType, final TokenListener listener)
 ```
 
 </br>
@@ -247,9 +247,7 @@ public void getTokenExp(final String appId,
 
 | 参数        | 类型            | 说明                                       |
 | :-------- | :------------ | :--------------------------------------- |
-| appId     | String        | 应用的AppID                                 |
-| appkey    | String        | 应用密钥                                     |
-| loginType | String        | 登录类型，AuthnHelper.UMC_LOGIN_DISPLAY       |
+| loginType | String        | 双卡登陆方式，AuthnHelper.LOGIN_TYPE_DEFAULT      |
 | authType  | String        | 认证类型，目前支持网关鉴权、短验和短信上行，网关鉴权是默认必选认证类型，短验和短信上行是开发者可选认证:</br>1.短信验证码：AuthnHelper.AUTH_TYPE_DYNAMIC_SMS</br>2.短信上行：AuthnHelper.AUTH_TYPE_SMS</br> 参数为空时，默认只选择网关鉴权方式取号 |
 | listener  | TokenListener | TokenListener为回调监听器，是一个java接口，需要调用者自己实现；TokenListener是接口中的认证登录token回调接口，OnGetTokenComplete是该接口中唯一的抽象方法，即void OnGetTokenComplete(JSONObject  jsonobj) |
 
