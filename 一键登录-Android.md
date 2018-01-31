@@ -11,9 +11,9 @@ sdk技术问题沟通QQ群：609994083</br>
     
     b. 使用工具类`AuthnHelper`的对象的init方法初始化SDK；</br>
 
-    b. 使用预取号方法提前缓存取号数据（非必要）；</br>
+    c. 使用预取号方法提前缓存取号数据（非必要）；</br>
 
-    c. 使用`AuthnHelper`中的`getTokenExp`或`getTokenImp`方法，获得token。</br>
+    d. 使用`AuthnHelper`中的`getTokenExp`或`getTokenImp`方法，获得token。</br>
 
 2. 在业务服务端调用`获取用户信息接口`或`本机号码校验接口`获取相关用户信息</br>
 
@@ -143,77 +143,9 @@ public AuthnHelper (Context context)
 
 </br>
 
-## 2.2. 预取号
+## 2.2. 显式登录
 
 ### 2.2.1. 方法描述
-
-**功能**
-
-使用SDK登录前，可以通过预取号方法提前获取用户信息并缓存。用户使用一键登录时，会优先使用缓存的信息快速请求SDK服务端获取`token`和`用户ID(openID)`等信息，提高登录速度。缓存的有效时间是5min并且只能使用一次。预取号成功后，如果用户成功进入授权页，但未授权给应用（未点一键登录按钮），并返回到上一级页面，预取号缓存将失效，预取号缓存失效后，用户再次使用显式登录时，将使用常规流程获取token信息。**注：预取号方法仅对显式登录有效。**
-
-**注意：预取号前，开发者需申请`READ_PHONE_STATE`权限，否则预取号会失败！**
-
-</br>
-
-**方法调用逻辑**
-
-![](image/pre_process.png)
-
-**原型**
-
-```java
-public void umcLoginPre(final String appId, 
-            final String appKey,
-            final TokenListener listener)
-```
-
-</br>
-
-### 2.2.2. 参数说明
-
-**请求参数**
-
-| 参数       | 类型            | 说明                                       |
-| :------- | :------------ | :--------------------------------------- |
-| appId    | String        | 应用的AppID                                 |
-| appkey   | String        | 应用密钥                                     |
-| listener | TokenListener | TokenListener为回调监听器，是一个java接口，需要调用者自己实现；TokenListener是接口中的认证登录token回调接口，OnGetTokenComplete是该接口中唯一的抽象方法，即void OnGetTokenComplete(JSONObject  jsonobj) |
-
-</br>
-
-**响应参数**
-
-OnGetTokenComplete的参数JSONObject，含义如下：
-
-| 字段         | 类型      | 含义                                 |
-| ---------- | ------- | ---------------------------------- |
-| resultCode | Int     | 接口返回码，“103000”为成功。具体返回码见4.1 SDK返回码 |
-| desc       | boolean | 成功标识，true为成功。                      |
-
-</br>
-
-### 2.2.3. 示例
-
-**请求示例代码**
-
-```java
-mAuthnHelper.umcLoginPre(Constant.APP_ID, 
-        Constant.APP_KEY,
-        mListener);
-```
-
-**响应示例代码**
-
-```
-{
-    "resultCode": "103000",
-    "desc": "true",
-}
-```
-
-## 2.3. 显式登录
-
-### 2.3.1. 方法描述
 
 **功能**
 
@@ -250,6 +182,13 @@ public void getTokenExp(int loginType, final String authType, final TokenListene
 | loginType | String        | 双卡登陆方式，AuthnHelper.LOGIN_TYPE_DEFAULT      |
 | authType  | String        | 认证类型，目前支持网关鉴权、短验和短信上行，网关鉴权是默认必选认证类型，短验和短信上行是开发者可选认证:</br>1.短信验证码：AuthnHelper.AUTH_TYPE_DYNAMIC_SMS</br>2.短信上行：AuthnHelper.AUTH_TYPE_SMS</br> 参数为空时，默认只选择网关鉴权方式取号 |
 | listener  | TokenListener | TokenListener为回调监听器，是一个java接口，需要调用者自己实现；TokenListener是接口中的认证登录token回调接口，OnGetTokenComplete是该接口中唯一的抽象方法，即void OnGetTokenComplete(JSONObject  jsonobj) |
+ 
+**`loginType`参数说明：**
+    AuthnHelper.LOGIN_TYPE_DEFAULT 0;//默认登录方式，中间件--》上网卡--》SIM1短信上行--》SIM2短信上行--》短信验证码
+    AuthnHelper.LOGIN_TYPE_SIM1 = 1;//使用SIM1登录
+    AuthnHelper.LOGIN_TYPE_SIM2 = 2;//使用SIM2登录
+    AuthnHelper.LOGIN_TYPE_CMCC_FIRST = 3;//使用移动卡优先登录
+    AuthnHelper.LOGIN_TYPE_WAP = 4;//使用上网卡登录
 
 **`authType`参数说明：**
 
@@ -270,7 +209,7 @@ OnGetTokenComplete的参数JSONObject，含义如下：
 | ----------- | ------ | ---------------------------------------- |
 | resultCode  | Int    | 接口返回码，“103000”为成功。具体响应码见4.1 SDK返回码       |
 | resultDesc  | String | 失败时返回：返回错误码说明                            |
-| authType    | String | 认证类型：0:其他；</br>1:WiFi下网关鉴权；</br>2:网关鉴权；</br>3:短信上行鉴权；</br>7:短信验证码登录 |
+| authType    | String | 认证类型：0:其他；</br>1:WiFi下网关鉴权；</br>2:网关鉴权；</br>3:短信上行鉴权；</br>7:短信验证码登录; </br>9:短信验证码登录;</br>4:WIFI下网关鉴权复用中间件登录; </br>5:网关鉴权复用中间件登录; </br>6:短信上行鉴权复用中间件登录 |
 | authTypeDec | String | 认证类型描述，对应authType                        |
 | token       | String | 成功时返回：临时凭证，token有效期2min，一次有效；同一用户（手机号）10分钟内获取token且未使用的数量不超过30个 |
 | openId      | String | 成功时返回：用户身份唯一标识                           |
@@ -282,7 +221,7 @@ OnGetTokenComplete的参数JSONObject，含义如下：
 **请求示例代码**
 
 ```java
-mAuthnHelper.getTokenExp(Constant.APP_ID, Constant.APP_KEY,
+mAuthnHelper.getTokenExp(mLoginType,
                  AuthnHelper.AUTH_TYPE_DYNAMIC_SMS + AuthnHelper.AUTH_TYPE_SMS, mListener);
 ```
 
@@ -316,9 +255,7 @@ mAuthnHelper.getTokenExp(Constant.APP_ID, Constant.APP_KEY,
 **原型**
 
 ```java
-public void getTokenImp(final String appId, 
-            final String appKey,
-            final TokenListener listener)
+public void getTokenImp(int loginType, final String authType,final TokenListener listener) 
 ```
 
 </br>
@@ -329,8 +266,8 @@ public void getTokenImp(final String appId,
 
 | 参数       | 类型            | 说明                                       |
 | :------- | :------------ | :--------------------------------------- |
-| appId    | String        | 应用的AppID                                 |
-| appkey   | String        | 应用密钥                                     |
+| loginType    | int        |    双卡登陆方式，AuthnHelper.LOGIN_TYPE_DEFAULT                             |
+| authType   | String        | 认证类型，目前支持网关鉴权、短验和短信上行，网关鉴权是默认必选认证类型，短验和短信上行是开发者可选认证:</br>1.短信验证码：AuthnHelper.AUTH_TYPE_DYNAMIC_SMS</br>2.短信上行：AuthnHelper.AUTH_TYPE_SMS</br> 参数为空时，默认只选择网关鉴权方式取号           |
 | listener | TokenListener | TokenListener为回调监听器，是一个java接口，需要调用者自己实现；TokenListener是接口中的认证登录token回调接口，OnGetTokenComplete是该接口中唯一的抽象方法，即void OnGetTokenComplete(JSONObject  jsonobj) |
 
 </br>
@@ -354,7 +291,7 @@ OnGetTokenComplete的参数JSONObject，含义如下：
 **请求示例代码**
 
 ```java
-mAuthnHelper.getTokenImp(Constant.APP_ID, Constant.APP_KEY,mListener);
+mAuthnHelper.getTokenImp(mLoginType,AuthnHelper.AUTH_TYPE_SMS,mListener);
 ```
 
 **响应示例代码**
