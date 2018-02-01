@@ -78,7 +78,7 @@ sdk技术问题沟通QQ群：609994083</br>
 
 **1. 创建一个AuthnHelper实例** 
 
-`AuthnHelper`是SDK的功能入口，所有的接口调用都得通过AuthnHelper进行调用。因此，调用SDK，首先需要创建一个AuthnHelper实例，其代码如下：
+`AuthnHelper`是SDK的功能入口，所有的接口调用都得通过AuthnHelper进行调用。因此，调用SDK，首先需要创建一个AuthnHelper实例并初始化，其代码如下：
 
 ```java
 public void onCreate(Bundle savedInstanceState) {
