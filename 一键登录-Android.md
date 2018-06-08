@@ -378,7 +378,7 @@ SDK在获取token过程中，用户手机必须在打开数据网络情况下才
 
 ### 3.1.2. 接口说明
 
-**请求地址：**https://www.cmpassport.com/unisdk/rsapi/loginTokenValidate
+**请求地址：**http://wap.cmpassport.com:8080/uniapi/uniTokenValidate
 
 **协议：** HTTPS 
 
